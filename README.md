@@ -2,6 +2,8 @@
 
 Python driver for the ASI MS-2000 XY stage via the LX4000 controller over serial.
 
+![MS-2000 XY stage setup](setup_photo.jpg)
+
 ## Usage
 
 ```python

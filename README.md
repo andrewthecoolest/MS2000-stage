@@ -83,6 +83,10 @@ Commands are addressed to the XY stage with the `2H` prefix (e.g. `2H MOVE X=100
 | -6 | Undefined error |
 | -21 | Command halted by HALT |
 
+## Hardware
+
+Tested with a **Gearmo USB 2.0 RS-232 Serial Adapter** using the **Future Technology Devices International FT232 Serial (UART) IC**. On Linux this enumerates as `/dev/ttyUSB0` and is detected automatically by the driver via its FTDI manufacturer string.
+
 ## References
 
 - [LX-4000 stage controller notes](https://41j.com/blog/2021/03/lx-4000-stage-controller-notes/)

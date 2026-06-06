@@ -91,3 +91,7 @@ Tested with a **Gearmo USB 2.0 RS-232 Serial Adapter** using the **Future Techno
 
 - [LX-4000 stage controller notes](https://41j.com/blog/2021/03/lx-4000-stage-controller-notes/)
 - [ASI MS-2000 Operations and Programming Manual](https://www.asiimaging.com/downloads/manuals/Operations_and_Programming_Manual.pdf)
+
+## Note
+
+I developed this for in-house use. Feel free to take and build upon it.

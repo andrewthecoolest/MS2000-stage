@@ -1,6 +1,6 @@
-# LX4000 XY Stage Driver
+# LX4000 Serial Driver for MS-2000 XY Stage
 
-Python driver for the ASI LX4000 XY stage over serial.
+Python driver for the ASI MS-2000 XY stage via the LX4000 controller over serial.
 
 ## Usage
 

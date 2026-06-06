@@ -83,3 +83,7 @@ Commands are addressed to the XY stage with the `2H` prefix (e.g. `2H MOVE X=100
 | -6 | Undefined error |
 | -21 | Command halted by HALT |
 
+## References
+
+- [LX-4000 stage controller notes](https://41j.com/blog/2021/03/lx-4000-stage-controller-notes/)
+- [ASI MS-2000 Operations and Programming Manual](https://www.asiimaging.com/downloads/manuals/Operations_and_Programming_Manual.pdf)

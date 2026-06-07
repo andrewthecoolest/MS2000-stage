@@ -10,13 +10,32 @@ Python driver for the ASI MS-2000 XY stage via the LX4000 controller over serial
 from xy_stage import XYStage
 
 with XYStage("/dev/ttyUSB0") as stage:
-    x, y = stage.where()
-    stage.move(5000, 5000)
+    # Motion
+    x, y = stage.where()          # read current position
+    stage.move(5000, 5000)        # absolute move (bounds-checked)
     stage.move_relative(1000, -500)
-    stage.move_to_center()
-    stage.home()
-    stage.halt()
-    busy = stage.is_busy()
+    stage.move_to_center()        # move to (5000, 5000)
+    stage.home()                  # drive to home (positive limit switch)
+    stage.halt()                  # stop all motion immediately
+    busy = stage.is_busy()        # True while stage is moving
+
+    # Configuration
+    stage.speed(5.0, 5.0)         # set max velocity per axis
+    stage.accel(50, 50)           # set ramp time in ms per axis
+    stage.backlash(0, 0)          # set backlash correction per axis
+    stage.zero()                  # set current position as origin (0, 0)
+    stage.here(1000, 2000)        # redefine position without moving
+
+    # Calibration
+    stage.aalign()                # auto-align motor drive circuit (stage moves)
+    px, py = stage.aalign_query() # query current potentiometer values
+    stage.aalign_set(px, py)      # write potentiometer values directly
+    stage.azero()                 # auto-adjust zero balance of motor drive card
+
+    # Utility
+    print(stage.info())           # dump full axis info from controller
+    print(stage.firmware_date())  # firmware compile date/time
+    stage.reset()                 # reset controller (reopen port afterwards)
 ```
 
 Serial settings are 115200 8N1.

@@ -1,3 +1,4 @@
+import time
 import serial
 from typing import Tuple
 
@@ -56,7 +57,11 @@ class XYStage:
         """Send a prefixed command and return the payload after ':A'."""
         self._ser.reset_input_buffer()
         self._ser.write(f"{_PREFIX} {cmd}\r".encode("ascii"))
-        raw = self._ser.read_until(_EOL).decode("ascii").strip()
+        raw = self._ser.read_until(_EOL).decode("ascii", errors="ignore")
+        # The controller frames some replies with ETX/control bytes
+        # (e.g. '\x03:A X=10 Y=10\r\n'). Drop anything non-printable so the
+        # ':A'/':N' prefix detection below works.
+        raw = "".join(c for c in raw if c.isprintable()).strip()
         if not raw:
             raise XYStageError(f"No response to {cmd!r} (timeout)")
         if raw.startswith(":N"):
@@ -142,15 +147,40 @@ class XYStage:
         """Return the firmware compile date/time."""
         return self._send("CDATE")
 
-    def aalign(self) -> None:
-        """Auto-align motor drive circuit for both axes. WARNING: stage will move."""
-        self._send("AALIGN X Y")
+    def aalign(self, settle: float = 1.5, timeout: float = 90.0) -> None:
+        """Auto-align motor drive circuit for both axes. WARNING: stage will move.
+
+        The controller streams 'Val:.. EC:..' diagnostic lines throughout the
+        alignment and clears its busy flag before the stream ends, so we issue
+        the command and then drain output until the line stays quiet for
+        ``settle`` seconds. This guarantees the buffer is clean (and alignment
+        finished) before any follow-up query.
+        """
+        self._ser.reset_input_buffer()
+        self._ser.write(f"{_PREFIX} AALIGN X Y\r".encode("ascii"))
+        deadline = time.monotonic() + timeout
+        last_activity = time.monotonic()
+        while time.monotonic() - last_activity < settle:
+            line = self._ser.read_until(_EOL)
+            if line:
+                last_activity = time.monotonic()
+                text = "".join(c for c in line.decode("ascii", errors="ignore")
+                               if c.isprintable()).strip()
+                if text.startswith(":N"):
+                    code = int(text[2:])
+                    desc = _ERRORS.get(code, f"Reserved/unknown code {code}")
+                    raise XYStageError(f"{desc} (error {code}): AALIGN")
+            if time.monotonic() > deadline:
+                raise XYStageError(f"AALIGN did not settle within {timeout:.0f}s")
 
     def aalign_query(self) -> Tuple[float, float]:
         """Query current potentiometer values set by AALIGN. Returns (x, y)."""
         data = self._send("AALIGN X? Y?")
-        parts = dict(p.split("=") for p in data.split())
-        return float(parts["X"]), float(parts["Y"])
+        try:
+            parts = dict(t.split("=") for t in data.split())
+            return float(parts["X"]), float(parts["Y"])
+        except (ValueError, KeyError):
+            raise XYStageError(f"Unexpected AALIGN query response: {data!r}")
 
     def aalign_set(self, x: float, y: float) -> None:
         """Write potentiometer values directly. Skips auto-alignment motion."""

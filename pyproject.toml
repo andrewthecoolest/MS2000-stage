@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cema-ms2000"
+version = "0.1.0"
+description = "ASI MS2000 XY stage driver"
+requires-python = ">=3.10"
+dependencies = ["pyserial"]
+
+[tool.setuptools]
+py-modules = ["xy_stage"]

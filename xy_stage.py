@@ -57,11 +57,18 @@ class XYStage:
         """Send a prefixed command and return the payload after ':A'."""
         self._ser.reset_input_buffer()
         self._ser.write(f"{_PREFIX} {cmd}\r".encode("ascii"))
-        raw = self._ser.read_until(_EOL).decode("ascii", errors="ignore")
+        reply = self._ser.read_until(_EOL)
+        # A glitched/noisy serial frame can return non-ASCII bytes. Treat that
+        # as a comms failure (like a timeout) so callers retry, rather than
+        # letting a UnicodeDecodeError escape and abort the whole scan.
+        try:
+            decoded = reply.decode("ascii")
+        except UnicodeDecodeError:
+            raise XYStageError(f"Corrupted response to {cmd!r}: {reply!r}")
         # The controller frames some replies with ETX/control bytes
         # (e.g. '\x03:A X=10 Y=10\r\n'). Drop anything non-printable so the
         # ':A'/':N' prefix detection below works.
-        raw = "".join(c for c in raw if c.isprintable()).strip()
+        raw = "".join(c for c in decoded if c.isprintable()).strip()
         if not raw:
             raise XYStageError(f"No response to {cmd!r} (timeout)")
         if raw.startswith(":N"):

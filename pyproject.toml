@@ -9,5 +9,5 @@ description = "ASI MS2000 XY stage driver"
 requires-python = ">=3.10"
 dependencies = ["pyserial"]
 
-[tool.setuptools]
-py-modules = ["xy_stage"]
+[tool.setuptools.packages.find]
+where = ["."]
